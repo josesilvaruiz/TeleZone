@@ -3,6 +3,7 @@
 A standalone CS2 plugin that lets admins define **teleporter zones** and **kill zones** on any map. All zones persist across rounds and map restarts via JSON files.
 
 > No dependencies on SharpTimer or any other plugin.
+> Created by **Torment**
 
 ---
 
@@ -128,6 +129,10 @@ dotnet build -c Release
 The compiled DLL will be in `bin/Release/TeleZone.dll`.
 
 ---
+
+## Author
+
+Made by **Torment**
 
 ## License
 
