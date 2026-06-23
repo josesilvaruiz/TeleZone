@@ -53,7 +53,7 @@ public class WasdMenuManager
                 mp.ScrollDown();
             else if ((prev & PlayerButtons.Use) == 0 && (cur & PlayerButtons.Use) != 0)
                 mp.Choose();
-            else if (((long)cur & 8589934592L) == 8589934592L) // R key
+            else if (((long)prev & 8192L) == 0 && ((long)cur & 8192L) != 0) // R (Reload = bit 13)
                 mp.Close();
 
             mp.Buttons = cur;
