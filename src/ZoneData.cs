@@ -71,12 +71,12 @@ namespace TeleZone
         public static string AngToStr(float p, float y, float r) =>
             FormattableString.Invariant($"{p} {y} {r}");
 
-        // Only checks X,Y — height is ignored so zones placed from noclip work correctly
         public static bool IsInsideBox(
             (float X, float Y, float Z) pt,
             (float X, float Y, float Z) c1,
             (float X, float Y, float Z) c2) =>
             pt.X >= Math.Min(c1.X, c2.X) && pt.X <= Math.Max(c1.X, c2.X) &&
-            pt.Y >= Math.Min(c1.Y, c2.Y) && pt.Y <= Math.Max(c1.Y, c2.Y);
+            pt.Y >= Math.Min(c1.Y, c2.Y) && pt.Y <= Math.Max(c1.Y, c2.Y) &&
+            pt.Z >= Math.Min(c1.Z, c2.Z) && pt.Z <= Math.Max(c1.Z, c2.Z);
     }
 }

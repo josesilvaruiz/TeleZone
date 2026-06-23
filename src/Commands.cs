@@ -34,19 +34,23 @@ namespace TeleZone
             if (origin == null) return;
             float ox = origin.X, oy = origin.Y, oz = origin.Z;
 
+            bool noclip = player.Pawn.Value?.MoveType == MoveType_t.MOVETYPE_NOCLIP;
+
             if (!state.IsMarkingZone)
             {
-                state.SourceC1 = ZoneMath.VecToStr(ox, oy, oz);
+                float saveZ = noclip ? -16384f : oz;
+                state.SourceC1 = ZoneMath.VecToStr(ox, oy, saveZ);
                 state.SourceC2 = null;
                 state.IsMarkingZone = true;
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Corner 1 saved. Walk to the opposite corner and select !1 again.");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Corner 1 saved{(noclip ? " (noclip: any height)" : "")}. Walk to the opposite corner and select !1 again.");
             }
             else
             {
-                state.SourceC2 = ZoneMath.VecToStr(ox, oy, oz);
+                float saveZ = noclip ? 16384f : oz;
+                state.SourceC2 = ZoneMath.VecToStr(ox, oy, saveZ);
                 state.IsMarkingZone = false;
                 CleanAdminBeams(player.Slot);
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Zone A defined. Now set destination B (!2).");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Zone A defined{(noclip ? " (noclip: any height)" : "")}. Now set destination B (!2).");
             }
         }
 
