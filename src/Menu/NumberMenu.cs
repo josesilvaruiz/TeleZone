@@ -20,7 +20,7 @@ public class NumberMenu
         sb.Append($"<font color='#aa44ff' class='fontSize-m'><b>{title}</b></font><br>");
         for (int i = 0; i < options.Count; i++)
             sb.Append($"<font color='white' class='fontSize-m'><b>{i + 1}.</b> {options[i].Label}</font><br>");
-        sb.Append("<font color='gray' class='fontSize-s'>Escribe el número · 0 para cerrar</font>");
+        sb.Append("<font color='gray' class='fontSize-s'>Type a number · 0 to close</font>");
 
         _active[player.Slot] = new NumberMenuInstance
         {

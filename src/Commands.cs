@@ -18,12 +18,12 @@ namespace TeleZone
             if (player == null || !player.IsValid) return;
             MenuSystem.Open(player, "TELEZONE TOOL", new()
             {
-                ("Marcar Zona A (esquina 1/2)", p => StepMarkSource(p)),
-                ("Fijar Destino B (pos + angulo)", p => StepSetDest(p)),
-                ("Guardar par",                  p => StepSavePair(p)),
-                ("Listar pares",                 p => ListPairs(p)),
-                ("Eliminar par...",              p => OpenRemoveMenu(p)),
-                ("Recargar zonas",               p => ReloadZones(p)),
+                ("Mark Zone A (corner 1/2)",     p => StepMarkSource(p)),
+                ("Set Destination B (pos+angle)", p => StepSetDest(p)),
+                ("Save pair",                     p => StepSavePair(p)),
+                ("List pairs",                    p => ListPairs(p)),
+                ("Remove pair...",                p => OpenRemoveMenu(p)),
+                ("Reload zones",                  p => ReloadZones(p)),
             });
         }
 
@@ -39,14 +39,14 @@ namespace TeleZone
                 state.SourceC1 = ZoneMath.VecToStr(ox, oy, oz);
                 state.SourceC2 = null;
                 state.IsMarkingZone = true;
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Esquina 1 guardada. Ve a la esquina opuesta y vuelve a elegir esta opcion.");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Corner 1 saved. Walk to the opposite corner and select this option again.");
             }
             else
             {
                 state.SourceC2 = ZoneMath.VecToStr(ox, oy, oz);
                 state.IsMarkingZone = false;
                 CleanAdminBeams(player.Slot);
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Zona A definida. Ahora fija el destino B.");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Zone A defined. Now set destination B (option 2).");
             }
         }
 
@@ -59,7 +59,7 @@ namespace TeleZone
 
             state.DestPos = ZoneMath.VecToStr(origin.X, origin.Y, origin.Z);
             state.DestAng = angles != null ? ZoneMath.AngToStr(angles.X, angles.Y, angles.Z) : null;
-            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Destino B fijado. Ahora guarda con opcion 3.");
+            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Destination B set. Save with option 3.");
         }
 
         private void StepSavePair(CCSPlayerController player)
@@ -68,7 +68,7 @@ namespace TeleZone
 
             if (state.SourceC1 == null || state.SourceC2 == null || state.DestPos == null)
             {
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Faltan pasos: marca la zona A (opciones 1 dos veces) y el destino B (opcion 2).");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Incomplete: mark Zone A (option 1 twice) and Destination B (option 2) first.");
                 return;
             }
 
@@ -89,17 +89,17 @@ namespace TeleZone
             state.DestAng = null;
             state.IsMarkingZone = false;
 
-            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Par #{newId} guardado y activo.");
+            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Pair #{newId} saved and active.");
         }
 
         private void ListPairs(CCSPlayerController player)
         {
             if (CurrentPairs.Count == 0)
             {
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Grey}Sin pares en {CurrentMapName}.");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Grey}No pairs on {CurrentMapName}.");
                 return;
             }
-            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Pares en {CurrentMapName}: {CurrentPairs.Count}");
+            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Pairs on {CurrentMapName}: {CurrentPairs.Count}");
             foreach (var p in CurrentPairs)
                 player.PrintToChat($"  {ChatColors.Yellow}#{p.Id} {ChatColors.Grey}A: {p.SourceC1} | B: {p.DestPos}");
         }
@@ -108,22 +108,22 @@ namespace TeleZone
         {
             if (CurrentPairs.Count == 0)
             {
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Grey}No hay pares para eliminar.");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Grey}No pairs to remove.");
                 return;
             }
 
             var options = CurrentPairs.Select(pair =>
             {
                 int pid = pair.Id;
-                return ($"Eliminar par #{pid}", (Action<CCSPlayerController>)(p =>
+                return ($"Remove pair #{pid}", (Action<CCSPlayerController>)(p =>
                 {
                     CurrentPairs.RemoveAll(x => x.Id == pid);
                     SaveMapData(p);
-                    p.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Par #{pid} eliminado.");
+                    p.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Pair #{pid} removed.");
                 }));
             }).ToList();
 
-            MenuSystem.Open(player, "ELIMINAR PAR", options);
+            MenuSystem.Open(player, "REMOVE PAIR", options);
         }
 
         private void ReloadZones(CCSPlayerController player)
@@ -131,7 +131,7 @@ namespace TeleZone
             CurrentPairs.Clear();
             CurrentKillZones.Clear();
             LoadCurrentMap();
-            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Zonas recargadas. {CurrentPairs.Count} teleport(s), {CurrentKillZones.Count} kill zone(s).");
+            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Zones reloaded — {CurrentPairs.Count} teleporter(s), {CurrentKillZones.Count} kill zone(s).");
         }
 
         // ── Kill zones ──────────────────────────────────────────────────────────
@@ -144,11 +144,11 @@ namespace TeleZone
             if (player == null || !player.IsValid) return;
             MenuSystem.Open(player, "KILLZONE TOOL", new()
             {
-                ("Añadir zona (radio 50)",  p => AddKillZone(p, 50f)),
-                ("Añadir zona (radio 100)", p => AddKillZone(p, 100f)),
-                ("Añadir zona (radio 200)", p => AddKillZone(p, 200f)),
-                ("Listar zonas",            p => ListKillZones(p)),
-                ("Eliminar zona...",        p => OpenRemoveKillZoneMenu(p)),
+                ("Add kill zone (radius 50)",  p => AddKillZone(p, 50f)),
+                ("Add kill zone (radius 100)", p => AddKillZone(p, 100f)),
+                ("Add kill zone (radius 200)", p => AddKillZone(p, 200f)),
+                ("List kill zones",            p => ListKillZones(p)),
+                ("Remove kill zone...",        p => OpenRemoveKillZoneMenu(p)),
             });
         }
 
@@ -165,26 +165,26 @@ namespace TeleZone
                 Radius = radius
             });
             SaveMapData(player);
-            player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Green}Kill Zone #{newId} añadida (radio: {radius} u).");
+            player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Green}Kill Zone #{newId} placed at your position (radius: {radius} units).");
         }
 
         private void ListKillZones(CCSPlayerController player)
         {
             if (CurrentKillZones.Count == 0)
             {
-                player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Grey}Sin kill zones en {CurrentMapName}.");
+                player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Grey}No kill zones on {CurrentMapName}.");
                 return;
             }
-            player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.White}Kill Zones en {CurrentMapName}: {CurrentKillZones.Count}");
+            player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.White}Kill Zones on {CurrentMapName}: {CurrentKillZones.Count}");
             foreach (var kz in CurrentKillZones)
-                player.PrintToChat($"  {ChatColors.Yellow}#{kz.Id} {ChatColors.Grey}Centro: {kz.Center} | Radio: {kz.Radius}");
+                player.PrintToChat($"  {ChatColors.Yellow}#{kz.Id} {ChatColors.Grey}Center: {kz.Center} | Radius: {kz.Radius}");
         }
 
         private void OpenRemoveKillZoneMenu(CCSPlayerController player)
         {
             if (CurrentKillZones.Count == 0)
             {
-                player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Grey}No hay kill zones para eliminar.");
+                player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Grey}No kill zones to remove.");
                 return;
             }
 
@@ -192,15 +192,15 @@ namespace TeleZone
             {
                 int kid = kz.Id;
                 float kr = kz.Radius;
-                return ($"Eliminar Kill Zone #{kid} (radio {kr})", (Action<CCSPlayerController>)(p =>
+                return ($"Remove Kill Zone #{kid} (radius {kr})", (Action<CCSPlayerController>)(p =>
                 {
                     CurrentKillZones.RemoveAll(x => x.Id == kid);
                     SaveMapData(p);
-                    p.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Red}Kill Zone #{kid} eliminada.");
+                    p.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Red}Kill Zone #{kid} removed.");
                 }));
             }).ToList();
 
-            MenuSystem.Open(player, "ELIMINAR KILL ZONE", options);
+            MenuSystem.Open(player, "REMOVE KILL ZONE", options);
         }
     }
 }

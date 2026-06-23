@@ -30,12 +30,12 @@ namespace TeleZone
                 {
                     CurrentPairs = data.Pairs ?? new();
                     CurrentKillZones = data.KillZones ?? new();
-                    Server.PrintToConsole($"[TeleZone] {CurrentPairs.Count} teleport(s) y {CurrentKillZones.Count} kill zone(s) cargados para {CurrentMapName}");
+                    Server.PrintToConsole($"[TeleZone] Loaded {CurrentPairs.Count} teleporter(s) and {CurrentKillZones.Count} kill zone(s) for {CurrentMapName}");
                 }
             }
             catch (Exception ex)
             {
-                Server.PrintToConsole($"[TeleZone] Error al cargar datos del mapa: {ex.Message}");
+                Server.PrintToConsole($"[TeleZone] Error loading map data: {ex.Message}");
             }
         }
 
@@ -47,13 +47,13 @@ namespace TeleZone
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                 File.WriteAllText(path, JsonSerializer.Serialize(
                     new MapTeleData { Pairs = CurrentPairs, KillZones = CurrentKillZones }, JsonOptions));
-                Server.PrintToConsole($"[TeleZone] Guardado en: {path}");
-                notifyPlayer?.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Grey}Guardado en: {path}");
+                Server.PrintToConsole($"[TeleZone] Saved to: {path}");
+                notifyPlayer?.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Grey}Saved to: {path}");
             }
             catch (Exception ex)
             {
-                Server.PrintToConsole($"[TeleZone] ERROR al guardar ({path}): {ex.Message}");
-                notifyPlayer?.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Error al guardar: {ex.Message}");
+                Server.PrintToConsole($"[TeleZone] ERROR saving ({path}): {ex.Message}");
+                notifyPlayer?.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Error saving: {ex.Message}");
             }
         }
 
@@ -131,7 +131,7 @@ namespace TeleZone
             }
             catch (Exception ex)
             {
-                Server.PrintToConsole($"[TeleZone] DrawWire error: {ex.Message}");
+                Server.PrintToConsole($"[TeleZone] DrawWire error: {ex.Message}");  // intentionally English
             }
         }
     }
