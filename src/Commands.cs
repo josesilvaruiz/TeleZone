@@ -11,20 +11,20 @@ namespace TeleZone
         // ── Teleporter zones ────────────────────────────────────────────────────
 
         [ConsoleCommand("css_telezones", "TeleZone admin menu")]
-        [RequiresPermissions("@css/cheats")]
+        [RequiresPermissions("@css/root")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void CmdTeleZoneMenu(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null || !player.IsValid) return;
-
-            var menu = MenuManager.CreateMenu("TELEZONE TOOL");
-            menu.Add("Mark Zone A (corner 1/2)",      (p, _) => StepMarkSource(p));
-            menu.Add("Set Destination B (pos+angle)", (p, _) => StepSetDest(p));
-            menu.Add("Save pair",                     (p, _) => StepSavePair(p));
-            menu.Add("List pairs",                    (p, _) => ListPairs(p));
-            menu.Add("Remove pair...",                (p, _) => OpenRemoveMenu(p));
-            menu.Add("Reload zones",                  (p, _) => ReloadZones(p));
-            MenuManager.OpenMenu(player, menu);
+            MenuSystem.Open(player, "TELEZONE TOOL", new()
+            {
+                ("Mark Zone A (corner 1/2)",      p => StepMarkSource(p)),
+                ("Set Destination B (pos+angle)", p => StepSetDest(p)),
+                ("Save pair",                     p => StepSavePair(p)),
+                ("List pairs",                    p => ListPairs(p)),
+                ("Remove pair...",                p => OpenRemoveMenu(p)),
+                ("Reload zones",                  p => ReloadZones(p)),
+            });
         }
 
         private void StepMarkSource(CCSPlayerController player)
@@ -39,14 +39,14 @@ namespace TeleZone
                 state.SourceC1 = ZoneMath.VecToStr(ox, oy, oz);
                 state.SourceC2 = null;
                 state.IsMarkingZone = true;
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Corner 1 saved. Walk to the opposite corner and select this option again.");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.White}Corner 1 saved. Walk to the opposite corner and select !1 again.");
             }
             else
             {
                 state.SourceC2 = ZoneMath.VecToStr(ox, oy, oz);
                 state.IsMarkingZone = false;
                 CleanAdminBeams(player.Slot);
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Zone A defined. Now set destination B (option 2).");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Zone A defined. Now set destination B (!2).");
             }
         }
 
@@ -59,7 +59,7 @@ namespace TeleZone
 
             state.DestPos = ZoneMath.VecToStr(origin.X, origin.Y, origin.Z);
             state.DestAng = angles != null ? ZoneMath.AngToStr(angles.X, angles.Y, angles.Z) : null;
-            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Destination B set. Save with option 3.");
+            player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Green}Destination B set. Save with !3.");
         }
 
         private void StepSavePair(CCSPlayerController player)
@@ -68,7 +68,7 @@ namespace TeleZone
 
             if (state.SourceC1 == null || state.SourceC2 == null || state.DestPos == null)
             {
-                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Incomplete: mark Zone A (option 1 twice) and Destination B (option 2) first.");
+                player.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Incomplete: mark Zone A (!1 twice) and Destination B (!2) first.");
                 return;
             }
 
@@ -112,19 +112,18 @@ namespace TeleZone
                 return;
             }
 
-            var menu = MenuManager.CreateMenu("REMOVE PAIR");
-            foreach (var pair in CurrentPairs)
+            var options = CurrentPairs.Select(pair =>
             {
                 int pid = pair.Id;
-                menu.Add($"Remove pair #{pid}", (p, _) =>
+                return ($"Remove pair #{pid}", (Action<CCSPlayerController>)(p =>
                 {
                     CurrentPairs.RemoveAll(x => x.Id == pid);
                     SaveMapData(p);
                     p.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Pair #{pid} removed.");
-                    MenuManager.CloseMenu(p);
-                });
-            }
-            MenuManager.OpenMenu(player, menu);
+                }));
+            }).ToList();
+
+            MenuSystem.Open(player, "REMOVE PAIR", options);
         }
 
         private void ReloadZones(CCSPlayerController player)
@@ -138,19 +137,19 @@ namespace TeleZone
         // ── Kill zones ──────────────────────────────────────────────────────────
 
         [ConsoleCommand("css_killzones", "Kill Zone admin menu")]
-        [RequiresPermissions("@css/cheats")]
+        [RequiresPermissions("@css/root")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void CmdKillZoneMenu(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null || !player.IsValid) return;
-
-            var menu = MenuManager.CreateMenu("KILLZONE TOOL");
-            menu.Add("Add kill zone (radius 50)",  (p, _) => AddKillZone(p, 50f));
-            menu.Add("Add kill zone (radius 100)", (p, _) => AddKillZone(p, 100f));
-            menu.Add("Add kill zone (radius 200)", (p, _) => AddKillZone(p, 200f));
-            menu.Add("List kill zones",            (p, _) => ListKillZones(p));
-            menu.Add("Remove kill zone...",        (p, _) => OpenRemoveKillZoneMenu(p));
-            MenuManager.OpenMenu(player, menu);
+            MenuSystem.Open(player, "KILLZONE TOOL", new()
+            {
+                ("Add kill zone (radius 50)",  p => AddKillZone(p, 50f)),
+                ("Add kill zone (radius 100)", p => AddKillZone(p, 100f)),
+                ("Add kill zone (radius 200)", p => AddKillZone(p, 200f)),
+                ("List kill zones",            p => ListKillZones(p)),
+                ("Remove kill zone...",        p => OpenRemoveKillZoneMenu(p)),
+            });
         }
 
         private void AddKillZone(CCSPlayerController player, float radius)
@@ -166,7 +165,7 @@ namespace TeleZone
                 Radius = radius
             });
             SaveMapData(player);
-            player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Green}Kill Zone #{newId} placed at your position (radius: {radius} units).");
+            player.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Green}Kill Zone #{newId} placed (radius: {radius} units).");
         }
 
         private void ListKillZones(CCSPlayerController player)
@@ -189,20 +188,19 @@ namespace TeleZone
                 return;
             }
 
-            var menu = MenuManager.CreateMenu("REMOVE KILL ZONE");
-            foreach (var kz in CurrentKillZones)
+            var options = CurrentKillZones.Select(kz =>
             {
                 int kid = kz.Id;
                 float kr = kz.Radius;
-                menu.Add($"Remove Kill Zone #{kid} (radius {kr})", (p, _) =>
+                return ($"Remove Kill Zone #{kid} (radius {kr})", (Action<CCSPlayerController>)(p =>
                 {
                     CurrentKillZones.RemoveAll(x => x.Id == kid);
                     SaveMapData(p);
                     p.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Red}Kill Zone #{kid} removed.");
-                    MenuManager.CloseMenu(p);
-                });
-            }
-            MenuManager.OpenMenu(player, menu);
+                }));
+            }).ToList();
+
+            MenuSystem.Open(player, "REMOVE KILL ZONE", options);
         }
     }
 }

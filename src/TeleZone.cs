@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Text.Json;
 
@@ -8,7 +9,7 @@ namespace TeleZone
     public partial class TeleZonePlugin : BasePlugin
     {
         public override string ModuleName => "TeleZone";
-        public override string ModuleVersion => "1.2.0";
+        public override string ModuleVersion => "1.3.0";
         public override string ModuleAuthor => "Torment";
         public override string ModuleDescription => "Admin-defined teleporter zones and kill zones, saved per map";
 
@@ -18,7 +19,7 @@ namespace TeleZone
         internal List<TeleporterPair> CurrentPairs { get; private set; } = new();
         internal List<KillZone> CurrentKillZones { get; private set; } = new();
         internal Dictionary<int, AdminToolState> AdminStates { get; } = new();
-        internal WasdMenuManager MenuManager { get; } = new();
+        internal NumberMenu MenuSystem { get; } = new();
         internal readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
         private int _tick;
@@ -35,6 +36,8 @@ namespace TeleZone
             RegisterListener<Listeners.OnTick>(OnTick);
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+            AddCommandListener("say", OnSay);
+            AddCommandListener("say_team", OnSay);
 
             if (hotReload)
                 LoadCurrentMap();
@@ -46,6 +49,20 @@ namespace TeleZone
             RemoveListener<Listeners.OnTick>(OnTick);
             DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnect);
             DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+        }
+
+        private HookResult OnSay(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player == null || !player.IsValid) return HookResult.Continue;
+
+            var msg = command.GetArg(1).Trim();
+            if (msg.StartsWith("!") && int.TryParse(msg[1..], out int n) && MenuSystem.HasMenu(player.Slot))
+            {
+                MenuSystem.TrySelect(player, n);
+                return HookResult.Handled;
+            }
+
+            return HookResult.Continue;
         }
 
         private void OnMapStart(string mapName)
@@ -64,10 +81,7 @@ namespace TeleZone
         {
             var player = @event.Userid;
             if (player != null && player.IsValid)
-            {
                 AdminStates[player.Slot] = new AdminToolState();
-                MenuManager.RegisterPlayer(player);
-            }
             return HookResult.Continue;
         }
 
@@ -80,7 +94,7 @@ namespace TeleZone
                 AdminStates.Remove(player.Slot);
                 _teleCooldownTick.Remove(player.Slot);
                 _killCooldownTick.Remove(player.Slot);
-                MenuManager.UnregisterPlayer(player.Slot);
+                MenuSystem.Close(player.Slot);
             }
             return HookResult.Continue;
         }
@@ -88,7 +102,6 @@ namespace TeleZone
         private void OnTick()
         {
             _tick++;
-            MenuManager.OnTick();
 
             foreach (var player in Utilities.GetPlayers())
             {
