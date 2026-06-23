@@ -140,10 +140,18 @@ namespace TeleZone
                         if (pair.DestAng != null)
                         {
                             var ang = ZoneMath.ParseAng(pair.DestAng);
-                            teleAng = new QAngle(ang.P, ang.Y, ang.R);
+                            teleAng = new QAngle(0f, ang.Y, 0f); // yaw only — no pitch/roll
                         }
 
-                        pawn.Teleport(new Vector(dest.X, dest.Y, dest.Z), teleAng, new Vector(0, 0, 0));
+                        var destVec = new Vector(dest.X, dest.Y, dest.Z);
+                        int teleSlot = player.Slot;
+                        Server.NextFrame(() =>
+                        {
+                            var p = Utilities.GetPlayerFromSlot(teleSlot);
+                            var pw = p?.PlayerPawn?.Value;
+                            if (pw == null || !pw.IsValid) return;
+                            pw.Teleport(destVec, teleAng, new Vector(0, 0, 0));
+                        });
                         _teleCooldownTick[player.Slot] = _tick;
                         break;
                     }
