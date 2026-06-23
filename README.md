@@ -1,104 +1,106 @@
 # TeleZone — CS2 CounterStrikeSharp Plugin
 
-A standalone CS2 plugin that lets admins define **teleporter zones** and **kill zones** on any map. All zones persist across rounds and map restarts via JSON files.
+A standalone CS2 plugin that lets admins define **teleporter zones** and **kill zones** on any map. All zones persist across rounds and map restarts via JSON files saved per map.
 
-> No dependencies on SharpTimer or any other plugin.
+> No dependencies on SharpTimer or any other plugin.  
 > Created by **Torment**
 
 ---
 
 ## Features
 
-- **Teleporter zones** — define a box (Zone A) and a destination point (Zone B). Any player who walks into Zone A is instantly teleported to Zone B with the saved orientation.
-- **Kill zones** — place a spherical zone at any position. Any player who enters it dies instantly.
+- **Teleporter zones** — define a rectangular area (Zone A) and a destination point (Zone B). Any player who steps into Zone A is instantly teleported to Zone B facing the saved direction.
+- **Kill zones** — place a spherical zone anywhere. Any player who enters it dies instantly.
 - **Per-map persistence** — zones are saved to JSON files and loaded automatically on every map start.
-- **Multiple zones per map** — unlimited teleporter pairs and kill zones per map.
-- **In-game admin tool** — numbered center-screen menu; no freezing, no external config needed.
-- **Live wireframe preview** — cyan beam box shown while placing a teleporter zone.
+- **Unlimited zones** — as many teleporter pairs and kill zones per map as you need.
+- **Noclip-friendly placement** — teleporter zones use 2D detection (X,Y only), so you can mark corners from noclip at any height and they will still catch players on the ground.
+- **Live wireframe preview** — cyan beam box shown while marking the second corner of a teleporter zone.
+- **Root-only** — both commands require `@css/root`.
 
 ---
 
 ## Requirements
 
 - [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) **≥ 1.0.369**
-- .NET 10 SDK (only needed to compile from source)
 
 ---
 
 ## Installation
 
-1. Download `TeleZone.dll` from the [latest release](../../releases/latest).
-2. Place it inside your server at:
+1. Download **`TeleZone.zip`** from the [latest release](../../releases/latest).
+2. Extract and place the `TeleZone/` folder inside:
    ```
-   csgo/addons/counterstrikesharp/plugins/TeleZone/TeleZone.dll
+   game/csgo/addons/counterstrikesharp/plugins/
+   ```
+   Result:
+   ```
+   game/csgo/addons/counterstrikesharp/plugins/TeleZone/TeleZone.dll
    ```
 3. Restart the server or run `css_plugins reload` in the server console.
 
-Zone data files are created automatically at:
+Zone data is saved automatically at:
 ```
-csgo/cfg/TeleZone/MapData/<mapname>.json
+game/csgo/cfg/TeleZone/MapData/<mapname>.json
 ```
 
 ---
 
 ## Permissions
 
-Both commands require the `@css/cheats` flag.
+Both commands require the **`@css/root`** flag (server root admin).
 
 ---
 
 ## Commands
 
-### `!telezones` — Teleporter zone menu
-
-Opens the center-screen menu. Type the option number in chat to select. Type `0` to close.
+### `!css_telezones` — Teleporter zone admin menu
 
 ```
-TELEZONE TOOL
-1. Marcar Zona A (esquina 1/2)
-2. Fijar Destino B (pos + angulo)
-3. Guardar par
-4. Listar pares
-5. Eliminar par...
-6. Recargar zonas
+━━━━ TELEZONE TOOL ━━━━
+!1  Mark Zone A (corner 1/2)
+!2  Set Destination B (pos+angle)
+!3  Save pair
+!4  List pairs
+!5  Remove pair...
+!6  Reload zones
+!0  Close
 ```
 
-**Workflow to create a teleporter:**
+**How to create a teleporter:**
 
-| Step | Action |
-|------|--------|
-| 1 | Stand at one corner of the entry zone → `!telezones` → option **1** |
-| 2 | Walk to the opposite corner (cyan wireframe follows you) → `!telezones` → option **1** again |
-| 3 | Move to the destination point and face the desired direction → `!telezones` → option **2** |
-| 4 | `!telezones` → option **3** to save — the pair is active immediately |
+| Step | What to do |
+|------|-----------|
+| 1 | Go to one corner of the entry area (works from noclip). Type `!css_telezones` → `!1` |
+| 2 | Walk/fly to the opposite corner. Type `!css_telezones` → `!1` again |
+| 3 | Move to the destination point and face the desired direction. Type `!css_telezones` → `!2` |
+| 4 | Type `!css_telezones` → `!3` to save. The pair is active immediately, no restart needed |
 
 ---
 
-### `!killzones` — Kill zone menu
+### `!css_killzones` — Kill zone admin menu
 
 ```
-KILLZONE TOOL
-1. Añadir zona (radio 50)
-2. Añadir zona (radio 100)
-3. Añadir zona (radio 200)
-4. Listar zonas
-5. Eliminar zona...
+━━━━ KILLZONE TOOL ━━━━
+!1  Add kill zone (radius 50)
+!2  Add kill zone (radius 100)
+!3  Add kill zone (radius 200)
+!4  List kill zones
+!5  Remove kill zone...
+!0  Close
 ```
 
-Stand at the center of where you want the kill zone, open `!killzones`, and pick a radius. The zone activates instantly.
+Stand at the center of where you want the kill zone, open `!css_killzones`, pick a radius. Active immediately.
 
 ---
 
 ## Data format
-
-All zones for a map are stored in a single JSON file:
 
 ```json
 {
   "Pairs": [
     {
       "Id": 1,
-      "SourceC1": "100.0 200.0 -128.0",
+      "SourceC1": "100.0 200.0 0.0",
       "SourceC2": "300.0 400.0 0.0",
       "DestPos":  "1500.0 200.0 -64.0",
       "DestAng":  "0 90 0"
@@ -114,7 +116,7 @@ All zones for a map are stored in a single JSON file:
 }
 ```
 
-You can edit this file manually and use **option 6** (`Recargar zonas`) to apply changes without restarting.
+You can edit these files manually and use **option 6** (`!6 Reload zones`) to apply changes without restarting.
 
 ---
 
@@ -126,7 +128,7 @@ cd TeleZone
 dotnet build -c Release
 ```
 
-The compiled DLL will be in `bin/Release/TeleZone.dll`.
+DLL output: `bin/Release/TeleZone.dll`
 
 ---
 
