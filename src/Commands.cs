@@ -16,15 +16,15 @@ namespace TeleZone
         public void CmdTeleZoneMenu(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null || !player.IsValid) return;
-            MenuSystem.Open(player, "TELEZONE TOOL", new()
-            {
-                ("Mark Zone A (corner 1/2)",     p => StepMarkSource(p)),
-                ("Set Destination B (pos+angle)", p => StepSetDest(p)),
-                ("Save pair",                     p => StepSavePair(p)),
-                ("List pairs",                    p => ListPairs(p)),
-                ("Remove pair...",                p => OpenRemoveMenu(p)),
-                ("Reload zones",                  p => ReloadZones(p)),
-            });
+
+            var menu = MenuManager.CreateMenu("TELEZONE TOOL");
+            menu.Add("Mark Zone A (corner 1/2)",      (p, _) => StepMarkSource(p));
+            menu.Add("Set Destination B (pos+angle)", (p, _) => StepSetDest(p));
+            menu.Add("Save pair",                     (p, _) => StepSavePair(p));
+            menu.Add("List pairs",                    (p, _) => ListPairs(p));
+            menu.Add("Remove pair...",                (p, _) => OpenRemoveMenu(p));
+            menu.Add("Reload zones",                  (p, _) => ReloadZones(p));
+            MenuManager.OpenMenu(player, menu);
         }
 
         private void StepMarkSource(CCSPlayerController player)
@@ -112,18 +112,19 @@ namespace TeleZone
                 return;
             }
 
-            var options = CurrentPairs.Select(pair =>
+            var menu = MenuManager.CreateMenu("REMOVE PAIR");
+            foreach (var pair in CurrentPairs)
             {
                 int pid = pair.Id;
-                return ($"Remove pair #{pid}", (Action<CCSPlayerController>)(p =>
+                menu.Add($"Remove pair #{pid}", (p, _) =>
                 {
                     CurrentPairs.RemoveAll(x => x.Id == pid);
                     SaveMapData(p);
                     p.PrintToChat($" {ChatColors.LightPurple}[TELEZONE] {ChatColors.Red}Pair #{pid} removed.");
-                }));
-            }).ToList();
-
-            MenuSystem.Open(player, "REMOVE PAIR", options);
+                    MenuManager.CloseMenu(p);
+                });
+            }
+            MenuManager.OpenMenu(player, menu);
         }
 
         private void ReloadZones(CCSPlayerController player)
@@ -142,14 +143,14 @@ namespace TeleZone
         public void CmdKillZoneMenu(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null || !player.IsValid) return;
-            MenuSystem.Open(player, "KILLZONE TOOL", new()
-            {
-                ("Add kill zone (radius 50)",  p => AddKillZone(p, 50f)),
-                ("Add kill zone (radius 100)", p => AddKillZone(p, 100f)),
-                ("Add kill zone (radius 200)", p => AddKillZone(p, 200f)),
-                ("List kill zones",            p => ListKillZones(p)),
-                ("Remove kill zone...",        p => OpenRemoveKillZoneMenu(p)),
-            });
+
+            var menu = MenuManager.CreateMenu("KILLZONE TOOL");
+            menu.Add("Add kill zone (radius 50)",  (p, _) => AddKillZone(p, 50f));
+            menu.Add("Add kill zone (radius 100)", (p, _) => AddKillZone(p, 100f));
+            menu.Add("Add kill zone (radius 200)", (p, _) => AddKillZone(p, 200f));
+            menu.Add("List kill zones",            (p, _) => ListKillZones(p));
+            menu.Add("Remove kill zone...",        (p, _) => OpenRemoveKillZoneMenu(p));
+            MenuManager.OpenMenu(player, menu);
         }
 
         private void AddKillZone(CCSPlayerController player, float radius)
@@ -188,19 +189,20 @@ namespace TeleZone
                 return;
             }
 
-            var options = CurrentKillZones.Select(kz =>
+            var menu = MenuManager.CreateMenu("REMOVE KILL ZONE");
+            foreach (var kz in CurrentKillZones)
             {
                 int kid = kz.Id;
                 float kr = kz.Radius;
-                return ($"Remove Kill Zone #{kid} (radius {kr})", (Action<CCSPlayerController>)(p =>
+                menu.Add($"Remove Kill Zone #{kid} (radius {kr})", (p, _) =>
                 {
                     CurrentKillZones.RemoveAll(x => x.Id == kid);
                     SaveMapData(p);
                     p.PrintToChat($" {ChatColors.Red}[KILLZONE] {ChatColors.Red}Kill Zone #{kid} removed.");
-                }));
-            }).ToList();
-
-            MenuSystem.Open(player, "REMOVE KILL ZONE", options);
+                    MenuManager.CloseMenu(p);
+                });
+            }
+            MenuManager.OpenMenu(player, menu);
         }
     }
 }
